@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: sede-san <sede-san@student.42madrid.com>   +#+  +:+       +#+         #
+#    By: sede-san <sede-san@student.42madrid.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/07/30 20:22:21 by sede-san          #+#    #+#              #
-#    Updated: 2025/07/30 20:22:21 by sede-san         ###   ########.fr        #
+#    Updated: 2025/07/31 03:16:03 by sede-san         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -92,7 +92,7 @@ $(NAME): $(OBJS)
 # Clean object files
 clean:
 	@echo "$(RED)$(EMOJI_BROOM) Cleaning object files...$(RESET)"
-	@rm -f $(OBJS)
+	@rm -rf $(OBJS_PATH)
 	@echo "$(GREEN)$(EMOJI_CHECK) Object files cleaned.$(RESET)"
 .PHONY: clean
 
