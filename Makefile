@@ -6,196 +6,179 @@
 #    By: sede-san <sede-san@student.42madrid.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/07/30 20:22:21 by sede-san          #+#    #+#              #
-#    Updated: 2025/07/31 03:16:03 by sede-san         ###   ########.fr        #
+#    Updated: 2025/08/31 12:40:46 by sede-san         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # ******************************* Output files ******************************* #
 
-# Executable file name
-NAME =
+NAME		=
+BONUS_NAME	=
 
 # ************************** Compilation variables *************************** #
 
-# Compiler
-CC = cc
+CC		= cc
+CFLAGS	= -Wall -Wextra -Werror
+HEADERS	= -I $(INCLUDE_PATH) -I $(LIBFT_INCLUDE_PATH) -I $(FT_PRINTF_INCLUDE_PATH) -I $(GET_NEXT_LINE_INCLUDE_PATH)
 
-# Compilation flags
-CFLAGS = -Wall -Wextra -Werror -Wunreachable-code # -Ofast
-
-# Additional headers
-HEADERS = -I $(INCLUDE_PATH) # -I $(GNL_INCLUDE_PATH) -I $(PRINTF_INCLUDE_PATH) -I $(LIBFT_INCLUDE_PATH)
-
-# Debug flags, execute with DEBUG=1 -> make DEBUG=1
-DFLAGS = -g3
 ifeq ($(DEBUG), 1)
-	CFLAGS += $(DFLAGS)
+	CFLAGS += -g3
 endif
 
-# Make command with no-print-directory flag
 MAKE += --no-print-directory
+
+# ****************************** Source files ******************************** #
+
+SRC_PATH = src
+
+SRC =
+
+BONUS_SRC =
+
+INCLUDE_PATH = include
+
+# ****************************** Object files ******************************** #
+
+OBJS_PATH	= build
+OBJS		= $(SRC:$(SRC_PATH)/%.c=$(OBJS_PATH)/%.o)
+BONUS_OBJS	= $(BONUS_SRC:$(SRC_PATH)/%.c=$(OBJS_PATH)/%.o)
+
+$(OBJS_PATH)/%.o: $(SRC_PATH)/%.c
+	@mkdir -p $(@D)
+	@$(CC) $(CFLAGS) $(HEADERS) -c $< -o $@
+	@echo "$< compiled"
+
+# ********************************* Rules ************************************ #
+
+all: mandatory bonus
+.PHONY: all
+
+mandatory: libft ft_printf $(NAME)
+.PHONY: mandatory
+
+bonus: libft ft_printf get_next_line $(BONUS_NAME)
+.PHONY: bonus
+
+$(NAME): $(OBJS)
+	@$(CC) $(CFLAGS) $(OBJS) $(LIBFT_BIN) $(FT_PRINTF_BIN) -o $(NAME)
+	@echo "$(GREEN)$(EMOJI_CHECK) $(NAME) ready. $(RESET)"
+
+$(BONUS_NAME): $(BONUS_OBJS)
+	@$(CC) $(CFLAGS) $(BONUS_OBJS) $(LIBFT_BIN) $(FT_PRINTF_BIN) $(GET_NEXT_LINE_BIN) -o $(BONUS_NAME)
+	@echo "$(GREEN)$(EMOJI_CHECK) $(BONUS_NAME) ready. $(RESET)"
+
+clean:
+	@rm -rf $(OBJS_PATH)
+.PHONY: clean
+
+fclean: clean
+	@rm -f $(NAME)
+	@rm -f $(BONUS_NAME)
+	@if [ -d $(LIBFT_PATH) ]; then										\
+		$(MAKE) --silent -C $(LIBFT_PATH) fclean > /dev/null;			\
+	fi
+	@if [ -d $(FT_PRINTF_PATH) ]; then									\
+		$(MAKE) --silent -C $(FT_PRINTF_PATH) fclean > /dev/null;		\
+	fi
+	@if [ -d $(GET_NEXT_LINE_PATH) ]; then								\
+		$(MAKE) --silent -C $(GET_NEXT_LINE_PATH) fclean > /dev/null;	\
+	fi
+	@if [ -d $(VISUALIZER_PATH) ]; then									\
+		rm -rf $(VISUALIZER_PATH)/build;								\
+	fi
+.PHONY: fclean
+
+re: fclean all
+.PHONY: re
+
+# ****************************** Libraries ********************************** #
+
+LIB_PATH = lib
+
+# ** Libft ** #
+
+LIBFT				= Libft
+LIBFT_REPO			= https://github.com/sdevsantiago/Libft.git
+LIBFT_PATH			= $(LIB_PATH)/$(LIBFT)
+LIBFT_INCLUDE_PATH	= $(LIBFT_PATH)
+LIBFT_BIN			= $(LIBFT_PATH)/libft.a
+
+libft: $(LIBFT_BIN)
+.PHONY: libft
+
+$(LIBFT_BIN):
+	@if [ ! -d $(LIBFT_PATH) ]; then									\
+		echo "$(YELLOW)$(EMOJI_WRENCH) Cloning $(LIBFT)...$(RESET)";	\
+		git clone --quiet $(LIBFT_REPO) $(LIBFT_PATH);					\
+		rm -rf $(LIBFT_PATH)/.git;										\
+		echo "$(GREEN)$(EMOJI_CHECK) $(LIBFT) cloned...$(RESET)";		\
+	fi
+	@if [ ! -f $(LIBFT_BIN) ]; then										\
+		echo "$(YELLOW)$(EMOJI_WRENCH) Compiling $(LIBFT)...$(RESET)";	\
+		$(MAKE) --silent -C $(LIBFT_PATH) all clean;					\
+		echo "$(GREEN)$(EMOJI_CHECK) $(LIBFT) compiled.$(RESET)";		\
+	fi
+
+# ** ft_printf **
+
+FT_PRINTF				= ft_printf
+FT_PRINTF_REPO			= https://github.com/sdevsantiago/ft_printf.git
+FT_PRINTF_PATH			= $(LIB_PATH)/$(FT_PRINTF)
+FT_PRINTF_INCLUDE_PATH	= $(FT_PRINTF_PATH)/include
+FT_PRINTF_BIN			= $(FT_PRINTF_PATH)/libftprintf.a
+
+ft_printf: $(FT_PRINTF_BIN)
+.PHONY: ft_printf
+
+$(FT_PRINTF_BIN):
+	@if [ ! -d $(FT_PRINTF_PATH) ]; then \
+		echo "$(YELLOW)$(EMOJI_WRENCH) Cloning $(FT_PRINTF)...$(RESET)";	\
+		git clone --quiet $(FT_PRINTF_REPO) $(FT_PRINTF_PATH);				\
+		rm -rf $(FT_PRINTF_PATH)/.git;										\
+		echo "$(GREEN)$(EMOJI_CHECK) $(FT_PRINTF) cloned...$(RESET)";		\
+	fi
+	@if [ ! -f $(FT_PRINTF_BIN) ]; then \
+		echo "$(YELLOW)$(EMOJI_WRENCH) Compiling $(FT_PRINTF)...$(RESET)";					\
+		$(MAKE) --silent -C $(FT_PRINTF_PATH) all clean LIBFT_PATH=../$(LIBFT) > /dev/null;	\
+		echo "$(GREEN)$(EMOJI_CHECK) $(FT_PRINTF) compiled.$(RESET)";						\
+	fi
+
+# ** get_next_line **
+
+GET_NEXT_LINE				= get_next_line
+GET_NEXT_LINE_REPO			= https://github.com/sdevsantiago/get_next_line.git
+GET_NEXT_LINE_PATH			= $(LIB_PATH)/$(GET_NEXT_LINE)
+GET_NEXT_LINE_INCLUDE_PATH	= $(GET_NEXT_LINE_PATH)/include
+GET_NEXT_LINE_BIN			= $(GET_NEXT_LINE_PATH)/get_next_line.a
+
+get_next_line: $(GET_NEXT_LINE_BIN)
+.PHONY: get_next_line
+
+$(GET_NEXT_LINE_BIN):
+	@if [ ! -d $(GET_NEXT_LINE_PATH) ]; then \
+		echo "$(YELLOW)$(EMOJI_WRENCH) Cloning $(GET_NEXT_LINE)...$(RESET)";	\
+		git clone --quiet $(GET_NEXT_LINE_REPO) $(GET_NEXT_LINE_PATH);			\
+		rm -rf $(GET_NEXT_LINE_PATH)/.git;										\
+		rm -rf $(GET_NEXT_LINE_PATH)/tests;										\
+		rm -rf $(GET_NEXT_LINE_PATH)/files;										\
+		echo "$(GREEN)$(EMOJI_CHECK) $(GET_NEXT_LINE) cloned...$(RESET)";		\
+	fi
+	@if [ ! -f $(GET_NEXT_LINE_BIN) ]; then \
+		echo "$(YELLOW)$(EMOJI_WRENCH) Compiling $(GET_NEXT_LINE)...$(RESET)";	\
+		$(MAKE) --silent -C $(GET_NEXT_LINE_PATH) all clean > /dev/null; 		\
+		echo "$(GREEN)$(EMOJI_CHECK) $(GET_NEXT_LINE) compiled.$(RESET)";		\
+	fi
 
 # ***************************** Style variables ****************************** #
 
-# Define color codes
 RED = \033[0;31m
 GREEN = \033[0;32m
 YELLOW = \033[0;33m
 BLUE = \033[0;34m
-RESET = \033[0m # No Color
+RESET = \033[0m
 
-# Emojis
 EMOJI_BROOM = 🧹
 EMOJI_CHECK = ✅
 EMOJI_CROSS = ❌
 EMOJI_WRENCH = 🔧
 EMOJI_BOX = 📦
-
-# ****************************** Source files ******************************** #
-
-# Source files path
-SRC_PATH = src
-
-# Source files
-SRC = \
-
-
-# Include path
-INCLUDE_PATH = ./include
-
-# ****************************** Object files ******************************** #
-
-# Object files path
-OBJS_PATH = build
-
-# Source files and destination paths
-OBJS = $(SRC:$(SRC_PATH)/%.c=$(OBJS_PATH)/%.o)
-
-# Compile as object files
-$(OBJS_PATH)/%.o: $(SRC_PATH)/%.c
-	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -c $< -o $@ $(HEADERS)
-	@echo "$< compiled"
-
-# ********************************* Rules ************************************ #
-
-# Compile all
-all: lib $(NAME)
-.PHONY: all
-
-# Compile project
-$(NAME): $(OBJS)
-	@echo "$(YELLOW)$(EMOJI_BOX) Linking...$(RESET)"
-	@$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(NAME)
-	@echo "$(GREEN)$(EMOJI_CHECK) Linked.$(RESET)"
-
-# Clean object files
-clean:
-	@echo "$(RED)$(EMOJI_BROOM) Cleaning object files...$(RESET)"
-	@rm -rf $(OBJS_PATH)
-	@echo "$(GREEN)$(EMOJI_CHECK) Object files cleaned.$(RESET)"
-.PHONY: clean
-
-# Clean object files and binaries
-fclean: clean
-	@echo "$(RED)$(EMOJI_BROOM) Cleaning binaries...$(RESET)"
-	@rm -f $(NAME)
-	@if [ -d $(LIBFT_PATH) ]; then \
-		$(MAKE) -C $(LIBFT_PATH) fclean; \
-	fi
-	@if [ -d $(GNL_PATH) ]; then \
-		$(MAKE) -C $(GNL_PATH) fclean; \
-	fi
-	@echo "$(GREEN)$(EMOJI_CHECK) Binaries cleaned.$(RESET)"
-.PHONY: fclean
-
-# Recompile
-re: fclean all
-.PHONY: re
-
-# ********************************* Libraries ******************************** #
-
-# Compile libraries
-lib:
-	@$(MAKE) libft
-	@$(MAKE) ft_printf
-	@$(MAKE) get_next_line
-.PHONY: lib
-
-# Compile file with libraries
-# LIBS = $(GNL_BIN) $(LIBFT_BIN) $(PRINTF_BIN)
-
-# Libraries path
-LIB_PATH = lib
-
-# ** Libft ** #
-
-LIBFT = Libft
-LIBFT_REPO = https://github.com/sdevsantiago/Libft.git
-LIBFT_PATH = $(LIB_PATH)/$(LIBFT)
-LIBFT_INCLUDE_PATH = $(LIBFT_PATH)
-LIBFT_BIN = $(LIBFT_PATH)/libft.a
-
-libft:
-	@if [ ! -d $(LIBFT_PATH) ]; then \
-		echo "$(YELLOW)$(EMOJI_WRENCH) Cloning $(LIBFT)...$(RESET)"; \
-		git clone $(LIBFT_REPO) $(LIBFT_PATH); \
-		rm -rf $(LIBFT_PATH)/.git; \
-		echo "$(GREEN)$(EMOJI_CHECK) $(LIBFT) cloned...$(RESET)"; \
-	fi
-	@if [ ! -f $(LIBFT_BIN) ]; then \
-		echo "$(YELLOW)$(EMOJI_WRENCH) Compiling $(LIBFT)...$(RESET)"; \
-		$(MAKE) -C $(LIBFT_PATH) all bonus clean; \
-		echo "$(GREEN)$(EMOJI_CHECK) $(LIBFT) compiled.$(RESET)"; \
-	else \
-		echo "$(GREEN)$(EMOJI_CHECK) $(LIBFT) already compiled.$(RESET)"; \
-	fi
-.PHONY: libft
-
-# ** ft_printf ** #
-
-PRINTF = ft_printf
-PRINTF_REPO = https://github.com/sdevsantiago/ft_printf.git
-PRINTF_PATH = $(LIB_PATH)/$(PRINTF)
-PRINTF_INCLUDE_PATH = $(PRINTF_PATH)
-PRINTF_BIN = $(PRINTF_PATH)/libftprintf.a
-
-ft_printf:
-	@if [ ! -d $(PRINTF_PATH) ]; then \
-		echo "$(YELLOW)$(EMOJI_WRENCH) Cloning $(PRINTF)...$(RESET)"; \
-		git clone $(PRINTF_REPO) $(PRINTF_PATH); \
-		rm -rf $(PRINTF_PATH)/.git; \
-		echo "$(GREEN)$(EMOJI_CHECK) $(PRINTF) cloned...$(RESET)"; \
-	fi
-	@if [ ! -f $(PRINTF_BIN) ]; then \
-		echo "$(YELLOW)$(EMOJI_WRENCH) Compiling $(PRINTF)...$(RESET)"; \
-		$(MAKE) -C $(PRINTF_PATH) all bonus clean; \
-		echo "$(GREEN)$(EMOJI_CHECK) $(PRINTF) compiled.$(RESET)"; \
-	else \
-		echo "$(GREEN)$(EMOJI_CHECK) $(PRINTF) already compiled.$(RESET)"; \
-	fi
-.PHONY: ft_printf
-
-# ** get_next_line ** #
-
-GNL = get_next_line
-GNL_REPO = https://github.com/sdevsantiago/get_next_line.git
-GNL_PATH = $(LIB_PATH)/$(GNL)
-GNL_INCLUDE_PATH = $(GNL_PATH)
-GNL_BIN = $(GNL_PATH)/get_next_line.a
-
-get_next_line:
-	@if [ ! -d $(GNL_PATH) ]; then \
-		echo "$(YELLOW)$(EMOJI_WRENCH) Cloning $(GNL)...$(RESET)"; \
-		git clone $(GNL_REPO) $(GNL_PATH); \
-		rm -rf $(GNL_PATH)/.git; \
-		echo "$(GREEN)$(EMOJI_CHECK) $(GNL) cloned...$(RESET)"; \
-	fi
-	@if [ ! -f $(GNL_BIN) ]; then \
-		echo "$(YELLOW)$(EMOJI_WRENCH) Compiling $(GNL)...$(RESET)"; \
-		$(MAKE) -C $(GNL_PATH) all clean; \
-		echo "$(GREEN)$(EMOJI_CHECK) $(GNL) compiled.$(RESET)"; \
-	else \
-		echo "$(GREEN)$(EMOJI_CHECK) $(GNL) already compiled.$(RESET)"; \
-	fi
-.PHONY: get_next_line
